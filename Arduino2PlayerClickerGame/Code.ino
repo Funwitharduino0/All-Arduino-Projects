@@ -1,8 +1,8 @@
 #define LED_1 5
 #define LED_2 6
 #define LED_3 7
-#define BUTTON_1 3
-#define BUTTON_2 12
+#define BUTTON_1 12
+#define BUTTON_2 3
 #define BEEPER 11
 #define LED_P1 4
 #define LED_P2 13
