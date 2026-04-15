@@ -40,13 +40,19 @@ void loop() {
   if (beginCountdown) {
     beginCountdown = false;
 
-    digitalWrite(LED_1, HIGH); beep(100); delay(900);
-    digitalWrite(LED_2, HIGH); beep(100); delay(900);
-    digitalWrite(LED_3, HIGH); beep(300); delay(700);
+    // Start buzzer once for the full countdown
+    digitalWrite(BEEPER, HIGH);
+
+    digitalWrite(LED_1, HIGH); delay(1000);
+    digitalWrite(LED_2, HIGH); delay(1000);
+    digitalWrite(LED_3, HIGH); delay(1000);
 
     digitalWrite(LED_1, LOW);
     digitalWrite(LED_2, LOW);
     digitalWrite(LED_3, LOW);
+
+    // Stop buzzer only after countdown ends
+    digitalWrite(BEEPER, LOW);
 
     waitInput = true;
   }
@@ -56,34 +62,58 @@ void loop() {
     bool b2 = digitalRead(BUTTON_2) == LOW;
 
     if (b1 && b2) {
-      // Tie — nobody scores, restart
-      beep(200); delay(100); beep(200);
+      // Tie — short beep
+      beep(150);
       resetRound();
 
     } else if (b1) {
+      beep(80); // beep when button 1 is pressed
       p1Score++;
+
       Serial.print("P1: "); Serial.print(p1Score);
       Serial.print(" | P2: "); Serial.println(p2Score);
-      digitalWrite(LED_P1, HIGH); delay(2000); digitalWrite(LED_P1, LOW);
+
+      digitalWrite(LED_P1, HIGH);
+      delay(2000);
+      digitalWrite(LED_P1, LOW);
 
       if (p1Score >= WIN_SCORE) {
-        // P1 wins
-        for (int i = 0; i < 5; i++) { digitalWrite(LED_P1, HIGH); beep(100); delay(100); digitalWrite(LED_P1, LOW); delay(100); }
-        p1Score = 0; p2Score = 0;
+        for (int i = 0; i < 5; i++) {
+          digitalWrite(LED_P1, HIGH);
+          beep(100);
+          delay(100);
+          digitalWrite(LED_P1, LOW);
+          delay(100);
+        }
+        p1Score = 0;
+        p2Score = 0;
       }
+
       resetRound();
 
     } else if (b2) {
+      beep(80); // beep when button 2 is pressed
       p2Score++;
+
       Serial.print("P1: "); Serial.print(p1Score);
       Serial.print(" | P2: "); Serial.println(p2Score);
-      digitalWrite(LED_P2, HIGH); delay(2000); digitalWrite(LED_P2, LOW);
+
+      digitalWrite(LED_P2, HIGH);
+      delay(2000);
+      digitalWrite(LED_P2, LOW);
 
       if (p2Score >= WIN_SCORE) {
-        // P2 wins
-        for (int i = 0; i < 5; i++) { digitalWrite(LED_P2, HIGH); beep(100); delay(100); digitalWrite(LED_P2, LOW); delay(100); }
-        p1Score = 0; p2Score = 0;
+        for (int i = 0; i < 5; i++) {
+          digitalWrite(LED_P2, HIGH);
+          beep(100);
+          delay(100);
+          digitalWrite(LED_P2, LOW);
+          delay(100);
+        }
+        p1Score = 0;
+        p2Score = 0;
       }
+
       resetRound();
     }
   }
