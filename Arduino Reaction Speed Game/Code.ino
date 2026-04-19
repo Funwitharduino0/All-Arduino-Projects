@@ -19,6 +19,14 @@ void beep(int ms) {
   digitalWrite(BEEPER, LOW);
 }
 
+// Blocks until both buttons are physically released, then debounces
+void waitForRelease() {
+  while (digitalRead(BUTTON_1) == LOW || digitalRead(BUTTON_2) == LOW) {
+    delay(10);
+  }
+  delay(40); // debounce settle time
+}
+
 void resetRound() {
   beginCountdown = true;
   waitInput = false;
@@ -40,7 +48,6 @@ void loop() {
   if (beginCountdown) {
     beginCountdown = false;
 
-    // Start buzzer once for the full countdown
     digitalWrite(BEEPER, HIGH);
 
     digitalWrite(LED_1, HIGH); delay(1000);
@@ -51,8 +58,10 @@ void loop() {
     digitalWrite(LED_2, LOW);
     digitalWrite(LED_3, LOW);
 
-    // Stop buzzer only after countdown ends
     digitalWrite(BEEPER, LOW);
+
+    // Must fully let go before the round starts — no cheating by pre-holding
+    waitForRelease();
 
     waitInput = true;
   }
@@ -61,60 +70,68 @@ void loop() {
     bool b1 = digitalRead(BUTTON_1) == LOW;
     bool b2 = digitalRead(BUTTON_2) == LOW;
 
-    if (b1 && b2) {
-      // Tie — short beep
-      beep(150);
-      resetRound();
+    if (b1 || b2) {
+      delay(20);              // debounce: confirm it's a real press
+      b1 = digitalRead(BUTTON_1) == LOW;
+      b2 = digitalRead(BUTTON_2) == LOW;
 
-    } else if (b1) {
-      beep(80); // beep when button 1 is pressed
-      p1Score++;
+      if (b1 && b2) {
+        beep(150);
+        waitForRelease();
+        resetRound();
 
-      Serial.print("P1: "); Serial.print(p1Score);
-      Serial.print(" | P2: "); Serial.println(p2Score);
+      } else if (b1) {
+        beep(80);
+        p1Score++;
 
-      digitalWrite(LED_P1, HIGH);
-      delay(2000);
-      digitalWrite(LED_P1, LOW);
+        Serial.print("P1: "); Serial.print(p1Score);
+        Serial.print(" | P2: "); Serial.println(p2Score);
 
-      if (p1Score >= WIN_SCORE) {
-        for (int i = 0; i < 5; i++) {
-          digitalWrite(LED_P1, HIGH);
-          beep(100);
-          delay(100);
-          digitalWrite(LED_P1, LOW);
-          delay(100);
+        digitalWrite(LED_P1, HIGH);
+        delay(2000);
+        digitalWrite(LED_P1, LOW);
+
+        if (p1Score >= WIN_SCORE) {
+          for (int i = 0; i < 5; i++) {
+            digitalWrite(LED_P1, HIGH);
+            beep(100);
+            delay(100);
+            digitalWrite(LED_P1, LOW);
+            delay(100);
+          }
+          p1Score = 0;
+          p2Score = 0;
         }
-        p1Score = 0;
-        p2Score = 0;
-      }
 
-      resetRound();
+        waitForRelease(); // flush any held state before next round
+        resetRound();
 
-    } else if (b2) {
-      beep(80); // beep when button 2 is pressed
-      p2Score++;
+      } else if (b2) {
+        beep(80);
+        p2Score++;
 
-      Serial.print("P1: "); Serial.print(p1Score);
-      Serial.print(" | P2: "); Serial.println(p2Score);
+        Serial.print("P1: "); Serial.print(p1Score);
+        Serial.print(" | P2: "); Serial.println(p2Score);
 
-      digitalWrite(LED_P2, HIGH);
-      delay(2000);
-      digitalWrite(LED_P2, LOW);
+        digitalWrite(LED_P2, HIGH);
+        delay(2000);
+        digitalWrite(LED_P2, LOW);
 
-      if (p2Score >= WIN_SCORE) {
-        for (int i = 0; i < 5; i++) {
-          digitalWrite(LED_P2, HIGH);
-          beep(100);
-          delay(100);
-          digitalWrite(LED_P2, LOW);
-          delay(100);
+        if (p2Score >= WIN_SCORE) {
+          for (int i = 0; i < 5; i++) {
+            digitalWrite(LED_P2, HIGH);
+            beep(100);
+            delay(100);
+            digitalWrite(LED_P2, LOW);
+            delay(100);
+          }
+          p1Score = 0;
+          p2Score = 0;
         }
-        p1Score = 0;
-        p2Score = 0;
-      }
 
-      resetRound();
+        waitForRelease();
+        resetRound();
+      }
     }
   }
 }
